@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人工作记录系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1><i class="fas fa-tasks"></i> 工作记录</h1>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active">
+                    <i class="fas fa-chart-line"></i> 仪表板
+                </a>
+                <a href="#add-log" class="nav-item">
+                    <i class="fas fa-plus-circle"></i> 新增记录
+                </a>
+                <a href="#view-logs" class="nav-item">
+                    <i class="fas fa-list-alt"></i> 查看记录
+                </a>
+                <a href="#statistics" class="nav-item">
+                    <i class="fas fa-chart-pie"></i> 统计分析
+                </a>
+                <a href="#projects" class="nav-item">
+                    <i class="fas fa-project-diagram"></i> 项目管理
+                </a>
+                <a href="#export" class="nav-item">
+                    <i class="fas fa-file-export"></i> 数据导出
+                </a>
+                <a href="#settings" class="nav-item">
+                    <i class="fas fa-cog"></i> 设置
+                </a>
+            </nav>
+            
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="username">用户</h4>
+                    <p id="today-date"></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 顶部栏 -->
+            <header class="topbar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="搜索工作记录...">
+                </div>
+                <div class="topbar-actions">
+                    <button id="theme-toggle" class="btn-icon">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="notifications" class="btn-icon">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button id="backup-btn" class="btn-icon" title="备份数据">
+                        <i class="fas fa-save"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 页面内容区 -->
+            <div class="page-content">
+                <!-- 仪表板页面 -->
+                <section id="dashboard-page" class="page active">
+                    <h2><i class="fas fa-chart-line"></i> 工作仪表板</h2>
+                    <div class="dashboard-cards">
+                        <div class="card">
+                            <h3><i class="fas fa-clock"></i> 今日工作时长</h3>
+                            <p class="big-number" id="today-hours">0 小时</p>
+                            <p class="card-sub">较昨日 <span id="yesterday-diff">+0%</span></p>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fas fa-calendar-alt"></i> 本月记录</h3>
+                            <p class="big-number" id="month-logs">0 条</p>
+                            <p class="card-sub">已完成任务</p>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fas fa-project-diagram"></i> 进行中项目</h3>
+                            <p class="big-number" id="active-projects">0 个</p>
+                            <p class="card-sub">活跃项目</p>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fas fa-trophy"></i> 本周效率</h3>
+                            <p class="big-number" id="week-efficiency">0%</p>
+                            <p class="card-sub">任务完成率</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-charts">
+                        <div class="chart-container">
+                            <h3>本周工作时间分布</h3>
+                            <canvas id="weekChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>项目时间占比</h3>
+                            <canvas id="projectChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="recent-activities">
+                        <h3><i class="fas fa-history"></i> 最近活动</h3>
+                        <div id="activities-list" class="activities-list">
+                            <!-- 动态加载活动记录 -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 新增记录页面 -->
+                <section id="add-log-page" class="page">
+                    <h2><i class="fas fa-plus-circle"></i> 新增工作记录</h2>
+                    <form id="log-form" class="log-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="log-date"><i class="fas fa-calendar"></i> 日期</label>
+                                <input type="date" id="log-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="log-time"><i class="fas fa-clock"></i> 开始时间</label>
+                                <input type="time" id="log-start-time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="log-time"><i class="fas fa-clock"></i> 结束时间</label>
+                                <input type="time" id="log-end-time" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="log-title"><i class="fas fa-heading"></i> 工作标题</label>
+                            <input type="text" id="log-title" placeholder="请输入工作标题" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="log-project"><i class="fas fa-project-diagram"></i> 所属项目</label>
+                            <div class="select-with-add">
+                                <select id="log-project">
+                                    <option value="">选择项目</option>
+                                </select>
+                                <button type="button" id="add-project-btn" class="btn-small">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="log-tags"><i class="fas fa-tags"></i> 标签</label>
+                            <div id="tags-container" class="tags-container">
+                                <!-- 标签会动态添加 -->
+                            </div>
+                            <input type="text" id="tag-input" placeholder="输入标签后按回车添加">
+                            <div class="tag-suggestions">
+                                <span class="tag-suggestion" data-tag="会议">会议</span>
+                                <span class="tag-suggestion" data-tag="开发">开发</span>
+                                <span class="tag-suggestion" data-tag="测试">测试</span>
+                                <span class="tag-suggestion" data-tag="设计">设计</span>
+                                <span class="tag-suggestion" data-tag="文档">文档</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="log-content"><i class="fas fa-edit"></i> 详细内容</label>
+                            <textarea id="log-content" rows="6" placeholder="请详细描述工作内容、进展和遇到的问题..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="log-attachment"><i class="fas fa-paperclip"></i> 附件（可选）</label>
+                            <input type="file" id="log-attachment">
+                            <small>支持图片、文档等文件，最大10MB</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> 保存记录
+                            </button>
+                            <button type="button" id="save-template" class="btn-secondary">
+                                <i class="fas fa-copy"></i> 保存为模板
+                            </button>
+                            <button type="reset" class="btn-outline">
+                                <i class="fas fa-redo"></i> 重置
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 查看记录页面 -->
+                <section id="view-logs-page" class="page">
+                    <h2><i class="fas fa-list-alt"></i> 工作记录</h2>
+                    
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>时间范围:</label>
+                            <select id="filter-period">
+                                <option value="all">全部</option>
+                                <option value="today">今天</option>
+                                <option value="week">本周</option>
+                                <option value="month">本月</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group" id="custom-date-range" style="display:none;">
+                            <input type="date" id="start-date">
+                            <span>至</span>
+                            <input type="date" id="end-date">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>项目:</label>
+                            <select id="filter-project">
+                                <option value="">全部项目</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>排序:</label>
+                            <select id="filter-sort">
+                                <option value="date-desc">日期从新到旧</option>
+                                <option value="date-asc">日期从旧到新</option>
+                                <option value="duration-desc">时长从多到少</option>
+                                <option value="duration-asc">时长从少到多</option>
+                            </select>
+                        </div>
+                        
+                        <button id="apply-filters" class="btn-primary">应用筛选</button>
+                        <button id="clear-filters" class="btn-outline">清除筛选</button>
+                    </div>
+
+                    <div class="logs-header">
+                        <span>共 <span id="total-logs-count">0</span> 条记录</span>
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="list">
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <button class="view-btn" data-view="grid">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="logs-container" class="logs-container list-view">
+                        <!-- 日志记录会动态加载 -->
+                    </div>
+
+                    <div class="pagination">
+                        <button id="prev-page" disabled>
+                            <i class="fas fa-chevron-left"></i> 上一页
+                        </button>
+                        <span id="page-info">第1页 / 共1页</span>
+                        <button id="next-page" disabled>
+                            下一页 <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 统计分析页面 -->
+                <section id="statistics-page" class="page">
+                    <h2><i class="fas fa-chart-pie"></i> 统计分析</h2>
+                    
+                    <div class="stats-controls">
+                        <div class="time-range-selector">
+                            <button class="time-range-btn active" data-range="week">本周</button>
+                            <button class="time-range-btn" data-range="month">本月</button>
+                            <button class="time-range-btn" data-range="quarter">本季度</button>
+                            <button class="time-range-btn" data-range="year">本年</button>
+                            <button class="time-range-btn" data-range="custom">自定义</button>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card large">
+                            <h3>工作时间趋势</h3>
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <h3>工作效率</h3>
+                            <div class="efficiency-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">平均每日工作</span>
+                                    <span class="metric-value" id="avg-daily">0h</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">最长连续工作</span>
+                                    <span class="metric-value" id="max-continuous">0天</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">任务完成率</span>
+                                    <span class="metric-value" id="completion-rate">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <h3>最忙碌时段</h3>
+                            <canvas id="hourlyChart"></canvas>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <h3>标签分布</h3>
+                            <canvas id="tagsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="detailed-stats">
+                        <h3>详细统计</h3>
+                        <div class="stats-table-container">
+                            <table class="stats-table">
+                                <thead>
+                                    <tr>
+                                        <th>项目</th>
+                                        <th>总时长</th>
+                                        <th>占比</th>
+                                        <th>平均每日</th>
+                                        <th>趋势</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="project-stats-body">
+                                    <!-- 动态加载项目统计 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 项目管理页面 -->
+                <section id="projects-page" class="page">
+                    <h2><i class="fas fa-project-diagram"></i> 项目管理</h2>
+                    
+                    <div class="projects-header">
+                        <button id="new-project-btn" class="btn-primary">
+                            <i class="fas fa-plus"></i> 新建项目
+                        </button>
+                    </div>
+
+                    <div id="projects-list" class="projects-list">
+                        <!-- 项目卡片会动态加载 -->
+                    </div>
+
+                    <!-- 项目详情模态框 -->
+                    <div id="project-modal" class="modal">
+                        <div class="modal-content">
+                            <span class="close-modal">&times;</span>
+                            <h3>项目详情</h3>
+                            <form id="project-form">
+                                <div class="form-group">
+                                    <label>项目名称</label>
+                                    <input type="text" id="project-name" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>项目描述</label>
+                                    <textarea id="project-description" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>开始日期</label>
+                                        <input type="date" id="project-start-date">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>截止日期</label>
+                                        <input type="date" id="project-end-date">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>项目状态</label>
+                                    <select id="project-status">
+                                        <option value="planning">规划中</option>
+                                        <option value="active">进行中</option>
+                                        <option value="completed">已完成</option>
+                                        <option value="on-hold">暂停</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>项目颜色</label>
+                                    <div class="color-picker">
+                                        <input type="color" id="project-color" value="#4CAF50">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">保存</button>
+                                    <button type="button" class="btn-outline delete-project">删除项目</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 数据导出页面 -->
+                <section id="export-page" class="page">
+                    <h2><i class="fas fa-file-export"></i> 数据管理</h2>
+                    
+                    <div class="export-options">
+                        <div class="export-card">
+                            <div class="export-icon">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <h3>导出数据</h3>
+                            <p>将工作记录导出为不同格式</p>
+                            <div class="export-formats">
+                                <button class="format-btn" data-format="json">
+                                    <i class="fas fa-code"></i> JSON
+                                </button>
+                                <button class="format-btn" data-format="csv">
+                                    <i class="fas fa-file-csv"></i> CSV
+                                </button>
+                                <button class="format-btn" data-format="excel">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                                <button class="format-btn" data-format="pdf">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="export-card">
+                            <div class="export-icon">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <h3>导入数据</h3>
+                            <p>从文件导入工作记录</p>
+                            <div class="import-section">
+                                <input type="file" id="import-file" accept=".json,.csv">
+                                <button id="import-btn" class="btn-primary">
+                                    <i class="fas fa-upload"></i> 导入
+                                </button>
+                            </div>
+                            <small>支持JSON和CSV格式</small>
+                        </div>
+                        
+                        <div class="export-card">
+                            <div class="export-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <h3>备份与恢复</h3>
+                            <p>管理数据备份</p>
+                            <div class="backup-actions">
+                                <button id="backup-now" class="btn-secondary">
+                                    <i class="fas fa-save"></i> 立即备份
+                                </button>
+                                <button id="restore-backup" class="btn-outline">
+                                    <i class="fas fa-history"></i> 恢复备份
+                                </button>
+                            </div>
+                            <div id="backup-list">
+                                <!-- 备份列表 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="data-management">
+                        <h3>数据清理</h3>
+                        <div class="data-actions">
+                            <button id="clear-old-data" class="btn-warning">
+                                <i class="fas fa-trash"></i> 清理旧数据
+                            </button>
+                            <button id="export-all" class="btn-secondary">
+                                <i class="fas fa-download"></i> 导出所有数据
+                            </button>
+                            <button id="reset-data" class="btn-danger">
+                                <i class="fas fa-exclamation-triangle"></i> 重置所有数据
+                            </button>
+                        </div>
+                        <small class="warning-text">重置操作不可逆，请谨慎操作！</small>
+                    </div>
+                </section>
+
+                <!-- 设置页面 -->
+                <section id="settings-page" class="page">
+                    <h2><i class="fas fa-cog"></i> 系统设置</h2>
+                    
+                    <div class="settings-sections">
+                        <div class="settings-section">
+                            <h3><i class="fas fa-user"></i> 用户设置</h3>
+                            <div class="setting-item">
+                                <label>用户名</label>
+                                <input type="text" id="set-username" placeholder="请输入用户名">
+                            </div>
+                            <div class="setting-item">
+                                <label>每日工作目标（小时）</label>
+                                <input type="number" id="daily-goal" min="1" max="24" value="8">
+                            </div>
+                            <div class="setting-item">
+                                <label>每周工作目标（天）</label>
+                                <input type="number" id="weekly-goal" min="1" max="7" value="5">
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3><i class="fas fa-bell"></i> 通知设置</h3>
+                            <div class="setting-item toggle">
+                                <label>启用工作提醒</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="enable-reminders" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label>提醒时间</label>
+                                <input type="time" id="reminder-time" value="09:00">
+                            </div>
+                            <div class="setting-item toggle">
+                                <label>每周报告邮件</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="weekly-report">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3><i class="fas fa-palette"></i> 外观设置</h3>
+                            <div class="setting-item">
+                                <label>主题</label>
+                                <select id="theme-select">
+                                    <option value="light">浅色</option>
+                                    <option value="dark">深色</option>
+                                    <option value="auto">自动</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label>语言</label>
+                                <select id="language-select">
+                                    <option value="zh-CN">简体中文</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3><i class="fas fa-database"></i> 数据设置</h3>
+                            <div class="setting-item">
+                                <label>自动备份频率</label>
+                                <select id="backup-frequency">
+                                    <option value="daily">每天</option>
+                                    <option value="weekly">每周</option>
+                                    <option value="monthly">每月</option>
+                                    <option value="never">从不</option>
+                                </select>
+                            </div>
+                            <div class="setting-item toggle">
+                                <label>启用云同步</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="cloud-sync">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-actions">
+                        <button id="save-settings" class="btn-primary">
+                            <i class="fas fa-save"></i> 保存设置
+                        </button>
+                        <button id="reset-settings" class="btn-outline">
+                            <i class="fas fa-undo"></i> 恢复默认
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- 通知中心 -->
+    <div id="notification-center" class="notification-center">
+        <div class="notification-header">
+            <h3>通知</h3>
+            <button class="close-notifications">&times;</button>
+        </div>
+        <div class="notifications-list">
+            <!-- 通知会动态添加 -->
+        </div>
+    </div>
+
+    <!-- 通用模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- 脚本引入 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</body>
+</html>
